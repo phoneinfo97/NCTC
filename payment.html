@@ -1,0 +1,968 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Payment Management - NCTC</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .payment-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    .payment-header {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    .payment-header h2 {
+      color: #2e7d32;
+      margin-bottom: 10px;
+    }
+
+    .payment-form {
+      background: #f5f5f5;
+      padding: 25px;
+      border-radius: 8px;
+      margin-bottom: 30px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 20px;
+    }
+
+    .form-group {
+      margin-bottom: 15px;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 8px;
+      color: #333;
+      font-weight: 500;
+    }
+
+    .form-group input,
+    .form-group select {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid #c8e6c9;
+      border-radius: 4px;
+      font-size: 1.1em;
+      transition: all 0.3s ease;
+    }
+
+    .form-group input:focus,
+    .form-group select:focus {
+      border-color: #2e7d32;
+      outline: none;
+      box-shadow: 0 0 8px rgba(46, 125, 50, 0.2);
+    }
+
+    .payment-history {
+      background: white;
+      padding: 25px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .payment-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+
+    .payment-table th,
+    .payment-table td {
+      padding: 12px 15px;
+      text-align: left;
+      border-bottom: 1px solid #ddd;
+    }
+
+    .payment-table th {
+      background: #2e7d32;
+      color: white;
+      font-weight: 500;
+    }
+
+    .payment-table tr:hover {
+      background-color: #f5f5f5;
+    }
+
+    .status-paid {
+      color: #2e7d32;
+      font-weight: bold;
+    }
+
+    .status-pending {
+      color: #f57c00;
+      font-weight: bold;
+    }
+
+    .btn-submit {
+      background: #2e7d32;
+      color: white;
+      padding: 12px 25px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 1.1em;
+      transition: background 0.3s;
+      width: 100%;
+      margin-top: 20px;
+    }
+
+    .btn-submit:hover {
+      background: #1b5e20;
+    }
+
+    .search-box {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .search-box input {
+      flex: 1;
+      padding: 12px;
+      border: 2px solid #c8e6c9;
+      border-radius: 4px;
+      font-size: 1.1em;
+    }
+
+    .search-box button {
+      padding: 12px 25px;
+      background: #2e7d32;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 1.1em;
+    }
+
+    .receipt {
+      display: none;
+      background: white;
+      padding: 30px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      margin-top: 20px;
+      max-width: 800px;
+      margin: 20px auto;
+    }
+
+    .receipt-header {
+      text-align: center;
+      margin-bottom: 20px;
+      border-bottom: 2px solid #2e7d32;
+      padding-bottom: 20px;
+    }
+
+    .receipt-header img {
+      max-width: 150px;
+      margin-bottom: 10px;
+    }
+
+    .receipt-section {
+      margin: 20px 0;
+      padding: 15px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+    }
+
+    .receipt-section h3 {
+      color: #2e7d32;
+      margin-bottom: 15px;
+      border-bottom: 1px solid #ddd;
+      padding-bottom: 10px;
+    }
+
+    .receipt-details {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 15px;
+    }
+
+    .receipt-details p {
+      margin: 5px 0;
+    }
+
+    .receipt-footer {
+      text-align: center;
+      margin-top: 30px;
+      padding-top: 20px;
+      border-top: 2px solid #2e7d32;
+    }
+
+    .receipt-footer p {
+      margin: 5px 0;
+    }
+
+    .signature-line {
+      margin-top: 50px;
+      text-align: right;
+    }
+
+    .signature-line p {
+      border-top: 1px solid #000;
+      display: inline-block;
+      padding-top: 5px;
+      margin-top: 50px;
+    }
+
+    @media print {
+      .no-print {
+        display: none;
+      }
+      .receipt {
+        display: block;
+        box-shadow: none;
+      }
+      body {
+        background: white;
+      }
+    }
+
+    .upi-section {
+      display: none;
+      text-align: center;
+      padding: 20px;
+      background: #f5f5f5;
+      border-radius: 8px;
+      margin-top: 20px;
+    }
+
+    .upi-qr {
+      max-width: 300px;
+      margin: 20px auto;
+      padding: 20px;
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .upi-qr img {
+      width: 100%;
+      height: auto;
+    }
+
+    .upi-details {
+      margin-top: 20px;
+      padding: 15px;
+      background: white;
+      border-radius: 8px;
+    }
+
+    .upi-details p {
+      margin: 10px 0;
+      color: #333;
+    }
+
+    .upi-details strong {
+      color: #2e7d32;
+    }
+
+    .transaction-input {
+      margin-top: 20px;
+      padding: 15px;
+      background: white;
+      border-radius: 8px;
+    }
+
+    .transaction-input input {
+      width: 100%;
+      padding: 12px;
+      margin: 10px 0;
+      border: 2px solid #c8e6c9;
+      border-radius: 4px;
+      font-size: 1.1em;
+    }
+
+    .transaction-input button {
+      background: #2e7d32;
+      color: white;
+      padding: 12px 25px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 1.1em;
+      width: 100%;
+      margin-top: 10px;
+    }
+
+    .transaction-input button:hover {
+      background: #1b5e20;
+    }
+
+    .success-message {
+      background-color: #e8f5e9;
+      border: 2px solid #2e7d32;
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+
+    .success-message h3 {
+      color: #2e7d32;
+      margin: 0 0 10px 0;
+    }
+
+    .success-message p {
+      margin: 5px 0;
+      color: #333;
+    }
+
+    @media print {
+      .no-print {
+        display: none !important;
+      }
+      .receipt {
+        display: block !important;
+        box-shadow: none;
+        margin: 0;
+        padding: 20px;
+      }
+      body {
+        background: white;
+      }
+      .receipt-header {
+        border-bottom: 2px solid #2e7d32;
+      }
+      .receipt-footer {
+        border-top: 2px solid #2e7d32;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container">
+      <div class="logo">
+        <img src="logo.png" alt="NCTC Logo" height="50">
+      </div>
+      <h1>NCTC</h1>
+      <nav>
+        <ul>
+          <li><a href="index.html">Home</a></li>
+          <li><a href="student.html">Dashboard</a></li>
+          <li><a href="courses.html">Courses</a></li>
+          <li><a href="payment.html" class="active">Payments</a></li>
+          <li><a href="#" id="logout-btn">Logout</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <section class="payment-container">
+    <div class="payment-header">
+      <h2>Payment Management</h2>
+    </div>
+
+    <div class="payment-form">
+      <h3>Add New Payment</h3>
+      <form id="payment-form">
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="roll-number">Student Roll Number</label>
+            <input type="text" id="roll-number" required placeholder="Enter roll number">
+          </div>
+          <div class="form-group">
+            <label for="payment-type">Payment Type</label>
+            <select id="payment-type" required onchange="handlePaymentTypeChange(this.value)">
+              <option value="">Select Payment Type</option>
+              <option value="Admission Fee">Admission Fee</option>
+              <option value="Registration Fee">Registration Fee</option>
+              <option value="Exam Fee">Exam Fee</option>
+              <option value="Result Fee">Result Fee</option>
+              <option value="One Time Payment">One Time Payment (All Fees)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="amount">Amount</label>
+            <input type="number" id="amount" required min="0" placeholder="Enter amount">
+          </div>
+          <div class="form-group">
+            <label for="payment-date">Payment Date</label>
+            <input type="date" id="payment-date" required>
+          </div>
+          <div class="form-group">
+            <label for="payment-method">Payment Method</label>
+            <select id="payment-method" required onchange="handlePaymentMethodChange(this.value)">
+              <option value="">Select Payment Method</option>
+              <option value="Cash">Cash</option>
+              <option value="Bank Transfer">Bank Transfer</option>
+              <option value="UPI">UPI</option>
+              <option value="Mobile Banking">Mobile Banking</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="transaction-id">Transaction ID</label>
+            <input type="text" id="transaction-id" placeholder="Enter transaction ID">
+          </div>
+        </div>
+        <button type="submit" class="btn-submit">Add Payment</button>
+      </form>
+    </div>
+
+    <!-- UPI Payment Section -->
+    <div id="upi-section" class="upi-section">
+      <h3>UPI Payment</h3>
+      <div class="upi-qr">
+        <img src="upi.png" alt="UPI QR Code">
+      </div>
+      <div class="upi-details">
+        <p><strong>UPI ID:</strong> nctc@upi</p>
+        <p><strong>Amount:</strong> <span id="upi-amount"></span></p>
+        <p><strong>Purpose:</strong> <span id="upi-purpose"></span></p>
+      </div>
+      <div class="transaction-input">
+        <p>After completing the payment, please enter your transaction reference number:</p>
+        <input type="text" id="upi-transaction" placeholder="Enter UPI transaction reference number">
+        <button onclick="verifyUPIPayment()">Verify Payment</button>
+      </div>
+    </div>
+
+    <div class="payment-history">
+      <h3>Your Payment History</h3>
+      <div class="search-box">
+        <input type="text" id="search-payment" placeholder="Search by roll number or payment type">
+        <button onclick="searchPayments()">Search</button>
+      </div>
+      
+      <table class="payment-table">
+        <thead>
+          <tr>
+            <th>Roll Number</th>
+            <th>Student Name</th>
+            <th>Payment Type</th>
+            <th>Amount</th>
+            <th>Date</th>
+            <th>Method</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="payments-list">
+          <!-- Payments will be loaded here -->
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Combined Receipt Template -->
+    <div id="receipt" class="receipt">
+      <div class="receipt-header">
+        <img src="logo.png" alt="NCTC Logo">
+        <h2>NCTC - Combined Receipt</h2>
+        <p>Admission & Payment Confirmation</p>
+      </div>
+
+      <div class="receipt-section">
+        <h3>Student Information</h3>
+        <div class="receipt-details">
+          <p><strong>Receipt No:</strong> <span id="receipt-number"></span></p>
+          <p><strong>Date:</strong> <span id="receipt-date"></span></p>
+          <p><strong>Student Name:</strong> <span id="receipt-student-name"></span></p>
+          <p><strong>Roll Number:</strong> <span id="receipt-roll-number"></span></p>
+          <p><strong>Course:</strong> <span id="receipt-course"></span></p>
+          <p><strong>Email:</strong> <span id="receipt-email"></span></p>
+          <p><strong>Phone:</strong> <span id="receipt-phone"></span></p>
+          <p><strong>Admission Date:</strong> <span id="receipt-admission-date"></span></p>
+        </div>
+      </div>
+
+      <div class="receipt-section">
+        <h3>Payment Details</h3>
+        <div class="receipt-details">
+          <p><strong>Payment Type:</strong> <span id="receipt-payment-type"></span></p>
+          <p><strong>Amount:</strong> <span id="receipt-amount"></span></p>
+          <p><strong>Payment Method:</strong> <span id="receipt-payment-method"></span></p>
+          <p><strong>Transaction ID:</strong> <span id="receipt-transaction-id"></span></p>
+          <p><strong>Payment Status:</strong> <span id="receipt-payment-status"></span></p>
+        </div>
+      </div>
+
+      <div class="receipt-footer">
+        <p>This is a computer-generated receipt and does not require a signature.</p>
+        <p>Thank you for choosing NCTC!</p>
+        <div class="signature-line">
+          <p>Authorized Signature</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <script>
+    // Load payments on page load
+    document.addEventListener('DOMContentLoaded', loadPayments);
+
+    // Handle payment type change
+    function handlePaymentTypeChange(paymentType) {
+      const amountInput = document.getElementById('amount');
+      const students = JSON.parse(localStorage.getItem('students') || '[]');
+      const rollNumber = document.getElementById('roll-number').value;
+      const student = students.find(s => s.rollNumber === rollNumber);
+
+      if (student) {
+        // Define fee settings for different courses
+        const feeSettings = {
+          'DCA': {
+            admissionFee: 790,
+            registrationFee: 660,
+            examFee: 600,
+            resultFee: 600,
+            discountPercentage: 20
+          },
+          'ADCA': {
+            admissionFee: 900,
+            registrationFee: 750,
+            examFee: 800,
+            resultFee: 700,
+            discountPercentage: 20
+          },
+          'DTP': {
+            admissionFee: 500,
+            registrationFee: 400,
+            examFee: 375,
+            resultFee: 375,
+            discountPercentage: 10
+          },
+          'BCC': {
+            admissionFee: 400,
+            registrationFee: 400,
+            examFee: 375,
+            resultFee: 375,
+            discountPercentage: 10
+          }
+        };
+
+        // Get fee settings for the student's course
+        const courseSettings = feeSettings[student.course] || feeSettings['DCA'];
+
+        // Calculate total amount for one-time payment
+        const totalAmount = courseSettings.admissionFee + courseSettings.registrationFee + 
+                          courseSettings.examFee + courseSettings.resultFee;
+        const discountedAmount = totalAmount * (1 - courseSettings.discountPercentage / 100);
+
+        switch(paymentType) {
+          case 'Admission Fee':
+            amountInput.value = courseSettings.admissionFee;
+            break;
+          case 'Registration Fee':
+            amountInput.value = courseSettings.registrationFee;
+            break;
+          case 'Exam Fee':
+            amountInput.value = courseSettings.examFee;
+            break;
+          case 'Result Fee':
+            amountInput.value = courseSettings.resultFee;
+            break;
+          case 'One Time Payment':
+            amountInput.value = discountedAmount;
+            break;
+          default:
+            amountInput.value = '';
+        }
+        amountInput.readOnly = true;
+      }
+    }
+
+    // Add new payment
+    document.getElementById('payment-form').addEventListener('submit', (e) => {
+      e.preventDefault();
+      
+      const rollNumber = document.getElementById('roll-number').value;
+      const paymentType = document.getElementById('payment-type').value;
+      const amount = document.getElementById('amount').value;
+      const paymentDate = document.getElementById('payment-date').value;
+      const paymentMethod = document.getElementById('payment-method').value;
+      const transactionId = document.getElementById('transaction-id').value;
+
+      // Check if student exists
+      const students = JSON.parse(localStorage.getItem('students') || '[]');
+      const student = students.find(s => s.rollNumber === rollNumber);
+      
+      if (!student) {
+        alert('Student with this roll number does not exist!');
+        return;
+      }
+
+      // Create new payment
+      const payments = JSON.parse(localStorage.getItem('payments') || '[]');
+      const newPayment = {
+        id: Date.now().toString(),
+        rollNumber,
+        studentName: student.fullName,
+        paymentType,
+        amount: parseFloat(amount),
+        paymentDate,
+        paymentMethod,
+        transactionId,
+        status: 'Paid',
+        createdAt: new Date().toISOString()
+      };
+
+      // If it's a one-time payment, create separate payment records for each fee type
+      if (paymentType === 'One Time Payment') {
+        const feeSettings = {
+          'DCA': {
+            admission: 790,
+            registration: 660,
+            exam: 600,
+            result: 600
+          },
+          'ADCA': {
+            admission: 900,
+            registration: 750,
+            exam: 800,
+            result: 700
+          },
+          'DTP': {
+            admission: 500,
+            registration: 400,
+            exam: 375,
+            result: 375
+          },
+          'BCC': {
+            admission: 400,
+            registration: 400,
+            exam: 375,
+            result: 375
+          }
+        };
+
+        const courseFees = feeSettings[student.course] || feeSettings['DCA'];
+        const feeTypes = ['Admission Fee', 'Registration Fee', 'Exam Fee', 'Result Fee'];
+        const feeAmounts = [courseFees.admission, courseFees.registration, courseFees.exam, courseFees.result];
+        
+        feeTypes.forEach((type, index) => {
+          const individualPayment = {
+            ...newPayment,
+            id: Date.now().toString() + index,
+            paymentType: type,
+            amount: feeAmounts[index]
+          };
+          payments.push(individualPayment);
+        });
+      } else {
+        payments.push(newPayment);
+      }
+
+      localStorage.setItem('payments', JSON.stringify(payments));
+      
+      // Clear form
+      document.getElementById('payment-form').reset();
+      
+      // Reload payments list
+      loadPayments();
+      
+      // Generate and show combined receipt
+      if (paymentType === 'One Time Payment') {
+        generateCombinedReceipt(newPayment, student, true);
+      } else {
+        generateCombinedReceipt(newPayment, student);
+      }
+
+      // Show success message
+      const successMessage = document.createElement('div');
+      successMessage.className = 'success-message';
+      successMessage.innerHTML = `
+        <h3>Payment Successful!</h3>
+        <p>Your payment has been processed successfully.</p>
+        <p>A combined receipt has been generated and will be printed automatically.</p>
+        <p>Please keep this receipt for your records.</p>
+      `;
+      document.querySelector('.payment-form').prepend(successMessage);
+
+      // Remove success message after 5 seconds
+      setTimeout(() => {
+        successMessage.remove();
+      }, 5000);
+    });
+
+    // Load payments
+    function loadPayments() {
+      const paymentsList = document.getElementById('payments-list');
+      paymentsList.innerHTML = '';
+
+      const payments = JSON.parse(localStorage.getItem('payments') || '[]');
+      const rollNumber = document.getElementById('roll-number').value;
+      
+      // Filter payments for the current student
+      const studentPayments = payments.filter(payment => payment.rollNumber === rollNumber);
+      
+      if (studentPayments.length === 0) {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td colspan="8" style="text-align: center;">No payment history found</td>
+        `;
+        paymentsList.appendChild(row);
+        return;
+      }
+
+      studentPayments.forEach(payment => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>${payment.rollNumber}</td>
+          <td>${payment.studentName}</td>
+          <td>${payment.paymentType}</td>
+          <td>₹${payment.amount}</td>
+          <td>${new Date(payment.paymentDate).toLocaleDateString()}</td>
+          <td>${payment.paymentMethod}</td>
+          <td class="status-${payment.status.toLowerCase()}">${payment.status}</td>
+          <td>
+            <button onclick="viewReceipt('${payment.id}')" class="btn-small">View Receipt</button>
+          </td>
+        `;
+        paymentsList.appendChild(row);
+      });
+    }
+
+    // Search payments
+    function searchPayments() {
+      const searchTerm = document.getElementById('search-payment').value.toLowerCase();
+      const paymentsList = document.getElementById('payments-list');
+      paymentsList.innerHTML = '';
+
+      const payments = JSON.parse(localStorage.getItem('payments') || '[]');
+      const rollNumber = document.getElementById('roll-number').value;
+      
+      // Filter payments for the current student and search term
+      const filteredPayments = payments.filter(payment => 
+        payment.rollNumber === rollNumber && 
+        (payment.paymentType.toLowerCase().includes(searchTerm))
+      );
+
+      if (filteredPayments.length === 0) {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td colspan="8" style="text-align: center;">No matching payments found</td>
+        `;
+        paymentsList.appendChild(row);
+        return;
+      }
+
+      filteredPayments.forEach(payment => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>${payment.rollNumber}</td>
+          <td>${payment.studentName}</td>
+          <td>${payment.paymentType}</td>
+          <td>₹${payment.amount}</td>
+          <td>${new Date(payment.paymentDate).toLocaleDateString()}</td>
+          <td>${payment.paymentMethod}</td>
+          <td class="status-${payment.status.toLowerCase()}">${payment.status}</td>
+          <td>
+            <button onclick="viewReceipt('${payment.id}')" class="btn-small">View Receipt</button>
+          </td>
+        `;
+        paymentsList.appendChild(row);
+      });
+    }
+
+    // Generate combined receipt
+    function generateCombinedReceipt(payment, student, isOneTimePayment = false) {
+      // Define fee settings for different courses
+      const feeSettings = {
+        'DCA': {
+          admissionFee: 790,
+          registrationFee: 660,
+          examFee: 600,
+          resultFee: 600,
+          discountPercentage: 20
+        },
+        'ADCA': {
+          admissionFee: 900,
+          registrationFee: 750,
+          examFee: 800,
+          resultFee: 700,
+          discountPercentage: 20
+        },
+        'DTP': {
+          admissionFee: 500,
+          registrationFee: 400,
+          examFee: 375,
+          resultFee: 375,
+          discountPercentage: 10
+        },
+        'BCC': {
+          admissionFee: 400,
+          registrationFee: 400,
+          examFee: 375,
+          resultFee: 375,
+          discountPercentage: 10
+        }
+      };
+
+      // Get fee settings for the student's course
+      const courseSettings = feeSettings[student.course] || feeSettings['DCA'];
+
+      // Update receipt with student information
+      document.getElementById('receipt-number').textContent = payment.id;
+      document.getElementById('receipt-date').textContent = new Date(payment.paymentDate).toLocaleDateString();
+      document.getElementById('receipt-student-name').textContent = student.fullName;
+      document.getElementById('receipt-roll-number').textContent = student.rollNumber;
+      document.getElementById('receipt-course').textContent = student.course;
+      document.getElementById('receipt-email').textContent = student.email;
+      document.getElementById('receipt-phone').textContent = student.phone;
+      document.getElementById('receipt-admission-date').textContent = new Date(student.admissionDate).toLocaleDateString();
+
+      // Update receipt with payment information
+      if (isOneTimePayment) {
+        const totalAmount = courseSettings.admissionFee + courseSettings.registrationFee + 
+                          courseSettings.examFee + courseSettings.resultFee;
+        const discount = totalAmount * (courseSettings.discountPercentage / 100);
+        const finalAmount = totalAmount - discount;
+
+        document.getElementById('receipt-payment-type').textContent = 'One Time Payment (All Fees)';
+        document.getElementById('receipt-amount').textContent = `₹${finalAmount}`;
+        document.getElementById('receipt-payment-method').textContent = payment.paymentMethod;
+        document.getElementById('receipt-transaction-id').textContent = payment.transactionId || 'N/A';
+        document.getElementById('receipt-payment-status').textContent = payment.status;
+
+        // Add detailed fee breakdown
+        const feeBreakdown = document.createElement('div');
+        feeBreakdown.className = 'receipt-section';
+        feeBreakdown.innerHTML = `
+          <h3>Fee Breakdown</h3>
+          <div class="receipt-details">
+            <p><strong>Admission Fee:</strong> ₹${courseSettings.admissionFee}</p>
+            <p><strong>Registration Fee:</strong> ₹${courseSettings.registrationFee}</p>
+            <p><strong>Exam Fee:</strong> ₹${courseSettings.examFee}</p>
+            <p><strong>Certificate Fee:</strong> ₹${courseSettings.resultFee}</p>
+            <p><strong>Subtotal:</strong> ₹${totalAmount}</p>
+            <p><strong>Discount (${courseSettings.discountPercentage}%):</strong> ₹${discount}</p>
+            <p><strong>Total Amount After Discount:</strong> ₹${finalAmount}</p>
+          </div>
+        `;
+        document.querySelector('.receipt').insertBefore(feeBreakdown, document.querySelector('.receipt-footer'));
+      } else {
+        document.getElementById('receipt-payment-type').textContent = payment.paymentType;
+        document.getElementById('receipt-amount').textContent = `₹${payment.amount}`;
+        document.getElementById('receipt-payment-method').textContent = payment.paymentMethod;
+        document.getElementById('receipt-transaction-id').textContent = payment.transactionId || 'N/A';
+        document.getElementById('receipt-payment-status').textContent = payment.status;
+
+        // Add fee details for individual payment
+        const feeBreakdown = document.createElement('div');
+        feeBreakdown.className = 'receipt-section';
+        feeBreakdown.innerHTML = `
+          <h3>Fee Details</h3>
+          <div class="receipt-details">
+            <p><strong>Course:</strong> ${student.course}</p>
+            <p><strong>Fee Type:</strong> ${payment.paymentType}</p>
+            <p><strong>Amount:</strong> ₹${payment.amount}</p>
+            <p><strong>Payment Date:</strong> ${new Date(payment.paymentDate).toLocaleDateString()}</p>
+            <p><strong>Payment Method:</strong> ${payment.paymentMethod}</p>
+            <p><strong>Transaction ID:</strong> ${payment.transactionId || 'N/A'}</p>
+          </div>
+        `;
+        document.querySelector('.receipt').insertBefore(feeBreakdown, document.querySelector('.receipt-footer'));
+      }
+
+      const receipt = document.getElementById('receipt');
+      receipt.style.display = 'block';
+      
+      // Print receipt automatically
+      window.print();
+      
+      // Hide receipt after printing
+      setTimeout(() => {
+        receipt.style.display = 'none';
+      }, 1000);
+    }
+
+    // View receipt
+    function viewReceipt(paymentId) {
+      const payments = JSON.parse(localStorage.getItem('payments') || '[]');
+      const payment = payments.find(p => p.id === paymentId);
+      
+      if (payment) {
+        const students = JSON.parse(localStorage.getItem('students') || '[]');
+        const student = students.find(s => s.rollNumber === payment.rollNumber);
+        
+        if (student) {
+          generateCombinedReceipt(payment, student);
+        }
+      }
+    }
+
+    // Delete payment
+    function deletePayment(paymentId) {
+      if (confirm('Are you sure you want to delete this payment record?')) {
+        const payments = JSON.parse(localStorage.getItem('payments') || '[]');
+        const updatedPayments = payments.filter(payment => payment.id !== paymentId);
+        localStorage.setItem('payments', JSON.stringify(updatedPayments));
+        loadPayments();
+        alert('Payment record deleted successfully');
+      }
+    }
+
+    // Handle payment method change
+    function handlePaymentMethodChange(method) {
+      const upiSection = document.getElementById('upi-section');
+      if (method === 'UPI') {
+        upiSection.style.display = 'block';
+        const amount = document.getElementById('amount').value;
+        const purpose = document.getElementById('payment-type').value;
+        document.getElementById('upi-amount').textContent = `₹${amount}`;
+        document.getElementById('upi-purpose').textContent = purpose;
+      } else {
+        upiSection.style.display = 'none';
+      }
+    }
+
+    // Verify UPI payment
+    function verifyUPIPayment() {
+      const transactionId = document.getElementById('upi-transaction').value;
+      if (!transactionId) {
+        alert('Please enter the transaction reference number');
+        return;
+      }
+
+      // Update the transaction ID in the form
+      document.getElementById('transaction-id').value = transactionId;
+      
+      // Submit the payment form
+      document.getElementById('payment-form').dispatchEvent(new Event('submit'));
+    }
+
+    // Load URL parameters on page load
+    document.addEventListener('DOMContentLoaded', () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const rollNumber = urlParams.get('roll');
+      const amount = urlParams.get('amount');
+      const paymentType = urlParams.get('type');
+
+      if (rollNumber) {
+        document.getElementById('roll-number').value = rollNumber;
+        document.getElementById('roll-number').readOnly = true;
+        
+        // Enable payment type selection
+        const paymentTypeSelect = document.getElementById('payment-type');
+        paymentTypeSelect.disabled = false;
+        
+        // If payment type is specified in URL, set it
+        if (paymentType) {
+          paymentTypeSelect.value = paymentType;
+          handlePaymentTypeChange(paymentType);
+        }
+      }
+      
+      if (amount) {
+        document.getElementById('amount').value = amount;
+        document.getElementById('amount').readOnly = true;
+      }
+
+      // Set today's date as default
+      const today = new Date().toISOString().split('T')[0];
+      document.getElementById('payment-date').value = today;
+    });
+  </script>
+</body>
+</html> 

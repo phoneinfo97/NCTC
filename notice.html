@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Notice Board - NCTC</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    .notice-board {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    .notice-card {
+      background: white;
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      transition: transform 0.3s ease;
+    }
+
+    .notice-card:hover {
+      transform: translateY(-5px);
+    }
+
+    .notice-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .notice-title {
+      font-size: 1.2em;
+      font-weight: bold;
+      color: #2e7d32;
+    }
+
+    .notice-content {
+      color: #333;
+      line-height: 1.6;
+      margin-top: 10px;
+    }
+
+    .notice-date {
+      color: #666;
+      font-size: 0.9em;
+      margin-top: 10px;
+    }
+
+    .no-notices {
+      text-align: center;
+      padding: 40px;
+      color: #666;
+      font-style: italic;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container">
+      <div class="logo">
+        <img src="logo.png" alt="NCTC Logo" height="50">
+      </div>
+      <h1>NCTC Notice Board</h1>
+      <nav>
+        <ul>
+          <li><a href="index.html">Home</a></li>
+          <li><a href="courses.html">Courses</a></li>
+          <li><a href="admission.html">Admission</a></li>
+          <li><a href="payment.html">Payments</a></li>
+          <li><a href="notice.html" class="active">Notice Board</a></li>
+          <li><a href="login.html">Login</a></li>
+          <li><a href="admin-login.html" class="admin-link">Admin</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <section class="notice-board">
+    <div id="notices-container">
+      <!-- Notices will be loaded here -->
+    </div>
+  </section>
+
+  <script>
+    // Load notices
+    function loadNotices() {
+      const noticesContainer = document.getElementById('notices-container');
+      
+      try {
+        // Get notices from localStorage
+        const notices = JSON.parse(localStorage.getItem('notices') || '[]');
+        
+        // Filter active notices
+        const activeNotices = notices.filter(notice => notice.status === 'Active');
+        
+        // Sort by date (newest first)
+        activeNotices.sort((a, b) => new Date(b.date) - new Date(a.date));
+        
+        // Clear container
+        noticesContainer.innerHTML = '';
+        
+        if (activeNotices.length === 0) {
+          noticesContainer.innerHTML = '<div class="no-notices">No notices available</div>';
+          return;
+        }
+        
+        // Display notices
+        activeNotices.forEach(notice => {
+          const noticeCard = document.createElement('div');
+          noticeCard.className = 'notice-card';
+          noticeCard.innerHTML = `
+            <div class="notice-header">
+              <div class="notice-title">${notice.title}</div>
+            </div>
+            <div class="notice-content">${notice.content}</div>
+            <div class="notice-date">Posted on: ${new Date(notice.date).toLocaleDateString()}</div>
+          `;
+          noticesContainer.appendChild(noticeCard);
+        });
+      } catch (error) {
+        console.error('Error loading notices:', error);
+        noticesContainer.innerHTML = '<div class="no-notices">Error loading notices</div>';
+      }
+    }
+
+    // Load notices when page loads
+    document.addEventListener('DOMContentLoaded', loadNotices);
+
+    // Refresh notices every 30 seconds
+    setInterval(loadNotices, 30000);
+  </script>
+
+  <footer>
+    <div class="container">
+      <p>&copy; 2025 National Computer Training Centre. All rights reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Student Dashboard - NCTC</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <div class="container">
+      <h1>NCTC Student Dashboard</h1>
+      <nav>
+        <ul>
+          <li><a href="#" class="active">My Profile</a></li>
+          <li><a href="courses.html">Courses</a></li>
+          <li><a href="class-notes.html">Class Notes</a></li>
+          <li><a href="result.html">Results</a></li>
+          <li><a href="#" id="logout-btn">Logout</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <section class="container">
+    <div class="student-dashboard">
+      <!-- Student Profile Card -->
+      <div class="profile-card">
+        <div class="profile-header">
+          <h2>Student Profile</h2>
+          <button onclick="editProfile()" class="btn-small">Edit Profile</button>
+        </div>
+        <div class="profile-content">
+          <div class="profile-info">
+            <div class="info-group">
+              <label>Roll Number</label>
+              <p id="student-roll">Loading...</p>
+            </div>
+            <div class="info-group">
+              <label>Full Name</label>
+              <p id="student-name">Loading...</p>
+            </div>
+            <div class="info-group">
+              <label>Course</label>
+              <p id="student-course">Loading...</p>
+            </div>
+            <div class="info-group">
+              <label>Email</label>
+              <p id="student-email">Loading...</p>
+            </div>
+            <div class="info-group">
+              <label>Phone</label>
+              <p id="student-phone">Loading...</p>
+            </div>
+            <div class="info-group">
+              <label>Admission Date</label>
+              <p id="student-admission-date">Loading...</p>
+            </div>
+            <div class="info-group">
+              <label>Status</label>
+              <p id="student-status">Loading...</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Course Progress Card -->
+      <div class="progress-card">
+        <h3>Course Progress</h3>
+        <div class="progress-content">
+          <div class="progress-bar">
+            <div class="progress" id="course-progress" style="width: 0%"></div>
+          </div>
+          <p id="progress-text">Loading progress...</p>
+        </div>
+      </div>
+
+      <!-- Recent Activities Card -->
+      <div class="activities-card">
+        <h3>Recent Activities</h3>
+        <div class="activities-list" id="activities-list">
+          <p>Loading activities...</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <script>
+    // Check if user is logged in
+    if (!sessionStorage.getItem('studentRoll')) {
+      window.location.href = 'login.html';
+    }
+
+    // Load student data
+    function loadStudentData() {
+      const rollNumber = sessionStorage.getItem('studentRoll');
+      const students = JSON.parse(localStorage.getItem('students') || '[]');
+      const student = students.find(s => s.rollNumber === rollNumber);
+
+      if (student) {
+        document.getElementById('student-roll').textContent = student.rollNumber;
+        document.getElementById('student-name').textContent = student.fullName;
+        document.getElementById('student-course').textContent = student.course;
+        document.getElementById('student-email').textContent = student.email;
+        document.getElementById('student-phone').textContent = student.phone;
+        document.getElementById('student-admission-date').textContent = new Date(student.admissionDate).toLocaleDateString();
+        document.getElementById('student-status').textContent = student.status || 'Active';
+
+        // Update progress (example - you can modify this based on your needs)
+        const progress = Math.floor(Math.random() * 100); // Replace with actual progress calculation
+        document.getElementById('course-progress').style.width = `${progress}%`;
+        document.getElementById('progress-text').textContent = `${progress}% Completed`;
+
+        // Load activities (example - you can modify this based on your needs)
+        const activities = [
+          { date: '2024-03-15', text: 'Completed Module 1' },
+          { date: '2024-03-10', text: 'Submitted Assignment 2' },
+          { date: '2024-03-05', text: 'Started Course' }
+        ];
+
+        const activitiesList = document.getElementById('activities-list');
+        activitiesList.innerHTML = activities.map(activity => `
+          <div class="activity-item">
+            <span class="activity-date">${new Date(activity.date).toLocaleDateString()}</span>
+            <span class="activity-text">${activity.text}</span>
+          </div>
+        `).join('');
+      } else {
+        alert('Student data not found!');
+        window.location.href = 'login.html';
+      }
+    }
+
+    // Edit profile function
+    function editProfile() {
+      const rollNumber = sessionStorage.getItem('studentRoll');
+      const students = JSON.parse(localStorage.getItem('students') || '[]');
+      const student = students.find(s => s.rollNumber === rollNumber);
+
+      if (student) {
+        const newEmail = prompt('Enter new email:', student.email);
+        if (newEmail === null) return;
+
+        const newPhone = prompt('Enter new phone:', student.phone);
+        if (newPhone === null) return;
+
+        // Update student data
+        student.email = newEmail;
+        student.phone = newPhone;
+        student.lastUpdated = new Date().toISOString();
+
+        // Save updated data
+        localStorage.setItem('students', JSON.stringify(students));
+        
+        // Reload the data
+        loadStudentData();
+        alert('Profile updated successfully!');
+      }
+    }
+
+    // Logout function
+    document.getElementById('logout-btn').addEventListener('click', (e) => {
+      e.preventDefault();
+      sessionStorage.removeItem('studentRoll');
+      window.location.href = 'login.html';
+    });
+
+    // Load data when page loads
+    loadStudentData();
+  </script>
+
+  <style>
+    .student-dashboard {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 20px;
+      padding: 20px;
+    }
+
+    .profile-card, .progress-card, .activities-card {
+      background: white;
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .profile-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .profile-header h2 {
+      margin: 0;
+      color: #2e7d32;
+    }
+
+    .profile-info {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 20px;
+    }
+
+    .info-group {
+      margin-bottom: 15px;
+    }
+
+    .info-group label {
+      display: block;
+      color: #666;
+      font-size: 0.9em;
+      margin-bottom: 5px;
+    }
+
+    .info-group p {
+      margin: 0;
+      font-size: 1.1em;
+      color: #333;
+      font-weight: 500;
+    }
+
+    .progress-bar {
+      background: #e8f5e9;
+      height: 20px;
+      border-radius: 10px;
+      overflow: hidden;
+      margin: 15px 0;
+    }
+
+    .progress {
+      background: linear-gradient(45deg, #2e7d32, #43a047);
+      height: 100%;
+      transition: width 0.3s ease;
+    }
+
+    .activity-item {
+      display: flex;
+      justify-content: space-between;
+      padding: 10px 0;
+      border-bottom: 1px solid #eee;
+    }
+
+    .activity-date {
+      color: #666;
+      font-size: 0.9em;
+    }
+
+    .activity-text {
+      color: #333;
+    }
+
+    @media (max-width: 768px) {
+      .profile-info {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</body>
+</html> 

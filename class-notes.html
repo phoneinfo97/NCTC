@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Class Notes - NCTC</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .notes-container {
+            padding: 20px;
+        }
+        .notes-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .search-box {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .search-box input,
+        .search-box select {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .search-box input {
+            flex: 1;
+        }
+        .notes-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        .note-card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transition: transform 0.2s;
+        }
+        .note-card:hover {
+            transform: translateY(-5px);
+        }
+        .note-card h3 {
+            margin: 0 0 10px 0;
+            color: #2e7d32;
+        }
+        .note-card p {
+            margin: 5px 0;
+            color: #666;
+        }
+        .note-card .btn {
+            background: #2e7d32;
+            color: white;
+            padding: 8px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            margin-top: 10px;
+        }
+        .note-card .btn:hover {
+            background: #1b5e20;
+        }
+        .login-required {
+            text-align: center;
+            padding: 40px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .login-required h2 {
+            color: #2e7d32;
+            margin-bottom: 20px;
+        }
+        .login-required .btn {
+            background: #2e7d32;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .login-required .btn:hover {
+            background: #1b5e20;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <div class="logo">
+                <img src="logo.png" alt="NCTC Logo" height="50">
+            </div>
+            <h1>Class Notes</h1>
+            <nav>
+                <ul>
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="student.html">Dashboard</a></li>
+                    <li><a href="#" id="logout-btn">Logout</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <section class="container notes-container">
+        <!-- Login Required Message -->
+        <div id="login-required" class="login-required" style="display: none;">
+            <h2>Login Required</h2>
+            <p>Please log in to access class notes.</p>
+            <a href="login.html" class="btn">Login</a>
+        </div>
+
+        <!-- Notes Content -->
+        <div id="notes-content">
+            <div class="notes-header">
+                <h2>Available Class Notes</h2>
+            </div>
+            
+            <div class="search-box">
+                <input type="text" id="search-notes" placeholder="Search notes...">
+                <select id="filter-category">
+                    <option value="">All Categories</option>
+                    <option value="Class Notes">Class Notes</option>
+                    <option value="Project Work">Project Work</option>
+                </select>
+            </div>
+
+            <div class="notes-grid" id="notes-grid">
+                <!-- Notes will be loaded here -->
+            </div>
+        </div>
+    </section>
+
+    <script>
+        // Check if user is logged in
+        const studentRoll = sessionStorage.getItem('studentRoll');
+        const loginRequired = document.getElementById('login-required');
+        const notesContent = document.getElementById('notes-content');
+
+        if (!studentRoll) {
+            // Store the current page URL to redirect back after login
+            sessionStorage.setItem('returnUrl', window.location.href);
+            // Redirect to login page
+            window.location.href = 'login.html';
+        } else {
+            loginRequired.style.display = 'none';
+            notesContent.style.display = 'block';
+            loadNotes();
+        }
+
+        // Load notes
+        function loadNotes() {
+            const notes = JSON.parse(localStorage.getItem('classNotes') || '[]');
+            const notesGrid = document.getElementById('notes-grid');
+            notesGrid.innerHTML = '';
+
+            if (notes.length === 0) {
+                notesGrid.innerHTML = '<p style="grid-column: 1/-1; text-align: center;">No notes available</p>';
+                return;
+            }
+
+            notes.forEach(note => {
+                const noteCard = document.createElement('div');
+                noteCard.className = 'note-card';
+                noteCard.innerHTML = `
+                    <h3>${note.title}</h3>
+                    <p><strong>Category:</strong> ${note.category}</p>
+                    <p><strong>Description:</strong> ${note.description}</p>
+                    <p><strong>Added:</strong> ${new Date(note.dateAdded).toLocaleDateString()}</p>
+                    <button onclick="viewNote('${note.id}')" class="btn">View Notes</button>
+                `;
+                notesGrid.appendChild(noteCard);
+            });
+        }
+
+        // View note
+        function viewNote(noteId) {
+            const notes = JSON.parse(localStorage.getItem('classNotes') || '[]');
+            const note = notes.find(n => n.id === noteId);
+            
+            if (note) {
+                const win = window.open('', '_blank');
+                win.document.write(`
+                    <iframe src="${note.fileContent}" width="100%" height="100%" style="border: none;"></iframe>
+                `);
+            }
+        }
+
+        // Search and filter notes
+        document.getElementById('search-notes').addEventListener('input', filterNotes);
+        document.getElementById('filter-category').addEventListener('change', filterNotes);
+
+        function filterNotes() {
+            const searchTerm = document.getElementById('search-notes').value.toLowerCase();
+            const categoryFilter = document.getElementById('filter-category').value;
+            const notes = JSON.parse(localStorage.getItem('classNotes') || '[]');
+            
+            const filteredNotes = notes.filter(note => {
+                const matchesSearch = note.title.toLowerCase().includes(searchTerm) ||
+                                    note.description.toLowerCase().includes(searchTerm);
+                const matchesCategory = !categoryFilter || note.category === categoryFilter;
+                return matchesSearch && matchesCategory;
+            });
+
+            const notesGrid = document.getElementById('notes-grid');
+            notesGrid.innerHTML = '';
+
+            if (filteredNotes.length === 0) {
+                notesGrid.innerHTML = '<p style="grid-column: 1/-1; text-align: center;">No matching notes found</p>';
+                return;
+            }
+
+            filteredNotes.forEach(note => {
+                const noteCard = document.createElement('div');
+                noteCard.className = 'note-card';
+                noteCard.innerHTML = `
+                    <h3>${note.title}</h3>
+                    <p><strong>Category:</strong> ${note.category}</p>
+                    <p><strong>Description:</strong> ${note.description}</p>
+                    <p><strong>Added:</strong> ${new Date(note.dateAdded).toLocaleDateString()}</p>
+                    <button onclick="viewNote('${note.id}')" class="btn">View Notes</button>
+                `;
+                notesGrid.appendChild(noteCard);
+            });
+        }
+
+        // Logout
+        document.getElementById('logout-btn').addEventListener('click', (e) => {
+            e.preventDefault();
+            sessionStorage.removeItem('studentRoll');
+            window.location.href = 'login.html';
+        });
+    </script>
+</body>
+</html> 

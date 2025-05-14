@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login - NCTC</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="auth-container">
+    <h2>Student Login</h2>
+    <div id="response-message" class="response-message" style="display: none;"></div>
+    <form id="login-form">
+      <div class="form-group">
+        <label for="username">Username</label>
+        <input type="text" id="username" required placeholder="Enter your username">
+      </div>
+      <div class="form-group">
+        <label for="password">Password</label>
+        <input type="password" id="password" required placeholder="Enter your password">
+      </div>
+      <button type="submit">Login</button>
+    </form>
+  </div>
+
+  <script>
+    document.getElementById('login-form').addEventListener('submit', function(e) {
+      e.preventDefault();
+      
+      const username = document.getElementById('username').value;
+      const password = document.getElementById('password').value;
+      
+      // Get stored users
+      const users = JSON.parse(localStorage.getItem('users') || '[]');
+      
+      // Find user
+      const user = users.find(u => u.username === username && u.password === password);
+      
+      if (user) {
+        // Store student roll in session
+        sessionStorage.setItem('studentRoll', user.rollNumber);
+        
+        // Check if there's a return URL
+        const returnUrl = sessionStorage.getItem('returnUrl');
+        if (returnUrl) {
+          // Clear the return URL
+          sessionStorage.removeItem('returnUrl');
+          // Redirect to the return URL
+          window.location.href = returnUrl;
+        } else {
+          // Default redirect to student dashboard
+          window.location.href = 'student.html';
+        }
+      } else {
+        alert('Invalid username or password');
+      }
+    });
+  </script>
+
+  <nav>
+    <ul>
+      <li><a href="index.html">Home</a></li>
+      <li><a href="courses.html">Courses</a></li>
+      <li><a href="admission.html">Admission</a></li>
+      <li><a href="payment.html">Payments</a></li>
+      <li><a href="notice.html">Notice Board</a></li>
+      <li><a href="login.html" class="active">Login</a></li>
+      <li><a href="admin-login.html" class="admin-link">Admin</a></li>
+    </ul>
+  </nav>
+</body>
+</html>

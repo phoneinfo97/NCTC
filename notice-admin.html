@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notice Management - NCTC</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .notice-management {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .form-section {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #2e7d32;
+            font-weight: 600;
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #c8e6c9;
+            border-radius: 4px;
+            font-size: 1em;
+        }
+
+        .form-group textarea {
+            min-height: 150px;
+            resize: vertical;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            border-color: #2e7d32;
+            outline: none;
+        }
+
+        .btn {
+            background: #2e7d32;
+            color: white;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: background 0.3s;
+        }
+
+        .btn:hover {
+            background: #1b5e20;
+        }
+
+        .notices-list {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .search-box {
+            margin-bottom: 20px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .search-box input {
+            flex: 1;
+            padding: 10px;
+            border: 2px solid #c8e6c9;
+            border-radius: 4px;
+            font-size: 1em;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        th {
+            background: #2e7d32;
+            color: white;
+        }
+
+        .btn-small {
+            padding: 6px 12px;
+            margin: 0 5px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: background 0.3s;
+        }
+
+        .btn-small:not(.delete) {
+            background: #2e7d32;
+            color: white;
+        }
+
+        .btn-small.delete {
+            background: #d32f2f;
+            color: white;
+        }
+
+        .btn-small:hover {
+            opacity: 0.9;
+        }
+
+        .status-active {
+            color: #2e7d32;
+            font-weight: bold;
+        }
+
+        .status-inactive {
+            color: #d32f2f;
+            font-weight: bold;
+        }
+
+        .success-message {
+            background: #c8e6c9;
+            color: #2e7d32;
+            padding: 10px;
+            border-radius: 4px;
+            margin-top: 10px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <div class="logo">
+                <img src="logo.png" alt="NCTC Logo" height="50">
+            </div>
+            <h1>Notice Management</h1>
+            <nav>
+                <ul>
+                    <li><a href="admin-panel.html">Back to Admin Panel</a></li>
+                    <li><a href="notice.html" target="_blank">View Notice Board</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <section class="notice-management">
+        <!-- Add New Notice Form -->
+        <div class="form-section">
+            <h2>Add New Notice</h2>
+            <form id="add-notice-form">
+                <div class="form-group">
+                    <label for="notice-title">Notice Title</label>
+                    <input type="text" id="notice-title" required placeholder="Enter notice title">
+                </div>
+                <div class="form-group">
+                    <label for="notice-content">Notice Content</label>
+                    <textarea id="notice-content" required placeholder="Enter notice content"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="notice-date">Notice Date</label>
+                    <input type="date" id="notice-date" required>
+                </div>
+                <div class="form-group">
+                    <label for="notice-status">Status</label>
+                    <select id="notice-status" required>
+                        <option value="Active">Active</option>
+                        <option value="Inactive">Inactive</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn">Add Notice</button>
+            </form>
+            <div id="success-message" class="success-message"></div>
+        </div>
+
+        <!-- Notices List -->
+        <div class="notices-list">
+            <h2>Manage Notices</h2>
+            <div class="search-box">
+                <input type="text" id="search-notice" placeholder="Search by title">
+                <button class="btn" onclick="searchNotices()">Search</button>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Title</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="notices-list">
+                    <!-- Notices will be loaded here -->
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <script>
+        // Check if user is admin
+        if (sessionStorage.getItem('isAdmin') !== 'true') {
+            window.location.href = 'admin-login.html';
+        }
+
+        // Load notices list
+        function loadNoticesList() {
+            const noticesList = document.getElementById('notices-list');
+            noticesList.innerHTML = '';
+
+            try {
+                const notices = JSON.parse(localStorage.getItem('notices') || '[]');
+                
+                // Sort notices by date (newest first)
+                notices.sort((a, b) => new Date(b.date) - new Date(a.date));
+                
+                if (notices.length === 0) {
+                    noticesList.innerHTML = '<tr><td colspan="4" style="text-align: center;">No notices available</td></tr>';
+                    return;
+                }
+                
+                notices.forEach(notice => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${new Date(notice.date).toLocaleDateString()}</td>
+                        <td>${notice.title}</td>
+                        <td class="status-${notice.status.toLowerCase()}">${notice.status}</td>
+                        <td>
+                            <button onclick="viewNotice('${notice.id}')" class="btn-small">View</button>
+                            <button onclick="editNotice('${notice.id}')" class="btn-small">Edit</button>
+                            <button onclick="previewNotice('${notice.id}')" class="btn-small">Preview</button>
+                            <button onclick="deleteNotice('${notice.id}')" class="btn-small delete">Delete</button>
+                        </td>
+                    `;
+                    noticesList.appendChild(row);
+                });
+            } catch (error) {
+                console.error('Error loading notices:', error);
+                noticesList.innerHTML = '<tr><td colspan="4" style="text-align: center;">Error loading notices</td></tr>';
+            }
+        }
+
+        // Add new notice
+        document.getElementById('add-notice-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const title = document.getElementById('notice-title').value.trim();
+            const content = document.getElementById('notice-content').value.trim();
+            const date = document.getElementById('notice-date').value;
+            const status = document.getElementById('notice-status').value;
+
+            if (!title || !content || !date) {
+                alert('Please fill in all required fields');
+                return;
+            }
+
+            try {
+                let notices = JSON.parse(localStorage.getItem('notices') || '[]');
+                
+                const newNotice = {
+                    id: Date.now().toString(),
+                    title: title,
+                    content: content,
+                    date: date,
+                    status: status,
+                    createdAt: new Date().toISOString()
+                };
+
+                notices.push(newNotice);
+                localStorage.setItem('notices', JSON.stringify(notices));
+                
+                // Clear form
+                document.getElementById('add-notice-form').reset();
+                
+                // Show success message
+                const successMessage = document.getElementById('success-message');
+                successMessage.textContent = 'Notice added successfully!';
+                successMessage.style.display = 'block';
+                setTimeout(() => {
+                    successMessage.style.display = 'none';
+                }, 3000);
+                
+                // Reload notices list
+                loadNoticesList();
+            } catch (error) {
+                console.error('Error saving notice:', error);
+                alert('Error saving notice. Please try again.');
+            }
+        });
+
+        // Search notices
+        function searchNotices() {
+            const searchTerm = document.getElementById('search-notice').value.toLowerCase();
+            const noticesList = document.getElementById('notices-list');
+            noticesList.innerHTML = '';
+
+            const notices = JSON.parse(localStorage.getItem('notices') || '[]');
+            
+            const filteredNotices = notices.filter(notice => 
+                notice.title.toLowerCase().includes(searchTerm)
+            );
+
+            if (filteredNotices.length === 0) {
+                noticesList.innerHTML = '<tr><td colspan="4" style="text-align: center;">No matching notices found</td></tr>';
+                return;
+            }
+
+            filteredNotices.forEach(notice => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${new Date(notice.date).toLocaleDateString()}</td>
+                    <td>${notice.title}</td>
+                    <td class="status-${notice.status.toLowerCase()}">${notice.status}</td>
+                    <td>
+                        <button onclick="viewNotice('${notice.id}')" class="btn-small">View</button>
+                        <button onclick="editNotice('${notice.id}')" class="btn-small">Edit</button>
+                        <button onclick="previewNotice('${notice.id}')" class="btn-small">Preview</button>
+                        <button onclick="deleteNotice('${notice.id}')" class="btn-small delete">Delete</button>
+                    </td>
+                `;
+                noticesList.appendChild(row);
+            });
+        }
+
+        // View notice
+        function viewNotice(noticeId) {
+            const notices = JSON.parse(localStorage.getItem('notices') || '[]');
+            const notice = notices.find(n => n.id === noticeId);
+            
+            if (notice) {
+                const details = `
+                    Notice Details:
+                    Title: ${notice.title}
+                    Date: ${new Date(notice.date).toLocaleDateString()}
+                    Status: ${notice.status}
+                    Content: ${notice.content}
+                `;
+                alert(details);
+            }
+        }
+
+        // Edit notice
+        function editNotice(noticeId) {
+            const notices = JSON.parse(localStorage.getItem('notices') || '[]');
+            const notice = notices.find(n => n.id === noticeId);
+            
+            if (notice) {
+                const newTitle = prompt('Enter new title:', notice.title);
+                if (newTitle === null) return;
+                
+                const newContent = prompt('Enter new content:', notice.content);
+                if (newContent === null) return;
+                
+                const newStatus = prompt('Enter new status (Active/Inactive):', notice.status);
+                if (newStatus === null) return;
+
+                notice.title = newTitle.trim();
+                notice.content = newContent.trim();
+                notice.status = newStatus;
+                notice.updatedAt = new Date().toISOString();
+
+                localStorage.setItem('notices', JSON.stringify(notices));
+                loadNoticesList();
+                alert('Notice updated successfully!');
+            }
+        }
+
+        // Preview notice
+        function previewNotice(noticeId) {
+            const notices = JSON.parse(localStorage.getItem('notices') || '[]');
+            const notice = notices.find(n => n.id === noticeId);
+            
+            if (notice) {
+                sessionStorage.setItem('previewNoticeId', noticeId);
+                window.open('notice.html', '_blank');
+            }
+        }
+
+        // Delete notice
+        function deleteNotice(noticeId) {
+            if (confirm('Are you sure you want to delete this notice?')) {
+                const notices = JSON.parse(localStorage.getItem('notices') || '[]');
+                const updatedNotices = notices.filter(notice => notice.id !== noticeId);
+                localStorage.setItem('notices', JSON.stringify(updatedNotices));
+                loadNoticesList();
+                alert('Notice deleted successfully');
+            }
+        }
+
+        // Load notices when page loads
+        document.addEventListener('DOMContentLoaded', loadNoticesList);
+    </script>
+</body>
+</html> 
