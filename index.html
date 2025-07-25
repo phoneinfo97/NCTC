@@ -1,137 +1,31 @@
-<!DOCTYPE html><html lang="en">
+<!DOCTYPE html>
+<html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Passport Photo Editor</title>
-  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-  <style>
-    body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: linear-gradient(to right, #eef2f3, #8e9eab);
-    }
-    #preview {
-      transition: all 0.3s ease-in-out;
-    }
-    #preview:hover {
-      transform: scale(1.05);
-    }
-  </style>
 </head>
-<body class="min-h-screen flex flex-col items-center justify-center py-10 px-4">
-  <div class="bg-white shadow-2xl rounded-xl p-6 w-full max-w-3xl">
-    <div class="flex items-center justify-center mb-6">
-      <img src="logo.png" alt="Passport Logo" class="h-16 mr-4">
-      <h1 class="text-3xl font-extrabold text-blue-700">Passport Size Photo Editor</h1>
-    </div><input id="upload" type="file" accept="image/*" class="mb-4 block w-full border border-gray-300 rounded p-2"/>
+<body>
+  <div class="container">
+    <div class="header">
+      <img src="logo.png" alt="Logo" class="logo">
+      <h1>Passport Size Photo Editor</h1>
+    </div>
 
-<div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-  <div>
-    <label class="text-sm font-medium">Background Color</label>
-    <input type="color" id="colorPicker" class="w-full h-10 rounded border border-gray-300"/>
+    <input id="upload" type="file" accept="image/*">
+    <div class="controls">
+      <input type="color" id="colorPicker">
+      <input type="file" id="bgUpload" accept="image/*">
+      <button id="removeBg">Remove Background</button>
+      <button id="applyBg">Apply Background</button>
+      <button id="downloadBtn">Download</button>
+    </div>
+
+    <div id="preview" class="preview">No image selected</div>
   </div>
-  <div>
-    <label class="text-sm font-medium">Custom Background Upload</label>
-    <input type="file" id="bgUpload" accept="image/*" class="w-full border border-gray-300 rounded p-2"/>
-  </div>
-</div>
 
-<div id="preview" class="bg-gray-200 rounded-xl flex items-center justify-center w-48 h-64 mx-auto overflow-hidden">
-  <span class="text-gray-500">No image selected</span>
-</div>
-
-<div class="mt-6 flex flex-col md:flex-row gap-4 justify-center">
-  <button id="removeBg" class="bg-red-500 hover:bg-red-600 text-white px-6 py-2 rounded shadow-md transition">Remove Background</button>
-  <button id="applyBg" class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded shadow-md transition">Apply Background</button>
-  <button id="downloadBtn" class="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded shadow-md transition">Download Photo</button>
-</div>
-
-  </div>  <script>
-    let selectedImage = null;
-    let removedBgUrl = null;
-
-    const uploadInput = document.getElementById("upload");
-    const preview = document.getElementById("preview");
-    const colorPicker = document.getElementById("colorPicker");
-    const bgUpload = document.getElementById("bgUpload");
-
-    uploadInput.addEventListener("change", () => {
-      const file = uploadInput.files[0];
-      if (!file) return;
-
-      const reader = new FileReader();
-      reader.onload = () => {
-        selectedImage = file;
-        preview.innerHTML = `<img src="${reader.result}" id="previewImage" class="w-full object-cover"/>`;
-      };
-      reader.readAsDataURL(file);
-    });
-
-    document.getElementById("removeBg").addEventListener("click", async () => {
-      if (!selectedImage) return Swal.fire("Please upload an image first.");
-
-      const formData = new FormData();
-      formData.append("image", selectedImage);
-
-      try {
-        const res = await fetch("http://localhost:5000/remove-bg", {
-          method: "POST",
-          body: formData
-        });
-
-        const blob = await res.blob();
-        removedBgUrl = URL.createObjectURL(blob);
-        preview.innerHTML = `<img src="${removedBgUrl}" id="previewImage" class="w-full object-contain"/>`;
-      } catch (error) {
-        console.error(error);
-        Swal.fire("Error removing background.");
-      }
-    });
-
-    document.getElementById("applyBg").addEventListener("click", () => {
-      const color = colorPicker.value;
-      const customBgFile = bgUpload.files[0];
-
-      if (customBgFile) {
-        const reader = new FileReader();
-        reader.onload = () => {
-          preview.innerHTML = `
-            <div class="relative w-48 h-64">
-              <img src="${reader.result}" class="absolute w-full h-full object-cover z-0 rounded-xl"/>
-              <img src="${removedBgUrl || preview.querySelector('img')?.src}" class="absolute w-full h-full object-contain z-10 rounded-xl"/>
-            </div>
-          `;
-        };
-        reader.readAsDataURL(customBgFile);
-      } else {
-        preview.innerHTML = `
-          <div class="w-48 h-64 rounded-xl flex items-center justify-center" style="background-color: ${color};">
-            <img src="${removedBgUrl || preview.querySelector('img')?.src}" class="object-contain w-full h-full rounded-xl"/>
-          </div>
-        `;
-      }
-    });
-
-    document.getElementById("downloadBtn").addEventListener("click", () => {
-      const canvas = document.createElement("canvas");
-      canvas.width = 350; // 3.5 cm at 100px/cm
-      canvas.height = 450; // 4.5 cm at 100px/cm
-
-      const ctx = canvas.getContext("2d");
-      const image = preview.querySelector("img");
-      if (!image) return Swal.fire("No image to download.");
-
-      const img = new Image();
-      img.crossOrigin = "anonymous";
-      img.src = image.src;
-
-      img.onload = () => {
-        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-        const link = document.createElement("a");
-        link.download = "passport-photo.png";
-        link.href = canvas.toDataURL("image/png");
-        link.click();
-      };
-    });
-  </script></body>
+  <script src="script.js"></script>
+</body>
 </html>
