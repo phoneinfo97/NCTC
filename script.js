@@ -1,20 +1,37 @@
 // **IMPORTANT: For a production application, NEVER expose your API key client-side.**
 // You would need a backend server to proxy requests to remove.bg.
-const REMOVE_BG_API_KEY = 'NsqYTFfs62ok544xzwZ8MGAa'; // Replace with your actual API key
+const REMOVE_BG_API_KEY = 'RNhzczLTrLxzi7xNxRgR5WxN'; // Replace with your actual API key
 
 const imageUpload = document.getElementById('imageUpload');
-const uploadedImage = document.getElementById('uploadedImage');
-const processedImage = document.getElementById('processedImage');
+const uploadedImage = document.getElementById('uploadedImage'); // For initial display and background removal
+const processedImage = document.getElementById('processedImage'); // For displaying results after background removal/resizing/cropping
 const noImageMessage = document.getElementById('noImageMessage');
+
 const removeBgBtn = document.getElementById('removeBgBtn');
 const downloadBtn = document.getElementById('downloadBtn');
+
 const colorPicker = document.getElementById('colorPicker');
 const applyColorBgBtn = document.getElementById('applyColorBgBtn');
 const customBgUpload = document.getElementById('customBgUpload');
 const applyCustomBgBtn = document.getElementById('applyCustomBgBtn');
 
-let originalFile = null; // To store the original image file
-let currentImageBlob = null; // To store the currently processed image blob for download
+// Cropping Elements
+const showCropToolBtn = document.getElementById('showCropToolBtn');
+const cropTargetImage = document.getElementById('cropTargetImage'); // The image Cropper.js will work on
+const cropActions = document.getElementById('cropActions');
+const aspectRatioOptions = document.querySelectorAll('input[name="aspectRatio"]');
+const cropImageBtn = document.getElementById('cropImageBtn');
+const resetCropBtn = document.getElementById('resetCropBtn');
+
+// Resizing Elements
+const resizeWidthInput = document.getElementById('resizeWidth');
+const resizeHeightInput = document.getElementById('resizeHeight');
+const maintainAspectCheckbox = document.getElementById('maintainAspect');
+const resizeImageBtn = document.getElementById('resizeImageBtn');
+
+let originalFile = null; // Stores the initially uploaded file
+let currentImageBlob = null; // Stores the most recently processed image blob (for download)
+let cropper = null; // Cropper.js instance
 
 // --- Event Listeners ---
 
@@ -24,13 +41,26 @@ imageUpload.addEventListener('change', function(event) {
         originalFile = file;
         const reader = new FileReader();
         reader.onload = function(e) {
+            // Display the uploaded image for initial view/BG removal
             uploadedImage.src = e.target.result;
             uploadedImage.style.display = 'block';
-            processedImage.style.display = 'none'; // Hide processed until processed
+            processedImage.style.display = 'none';
             noImageMessage.style.display = 'none';
+
+            // Prepare image for cropping (Cropper.js will work on this one)
+            cropTargetImage.src = e.target.result;
+
             enableControls(true);
             currentImageBlob = null; // Reset current processed image
             downloadBtn.style.display = 'none';
+
+            // If cropper is active, destroy it and re-initialize for new image
+            if (cropper) {
+                cropper.destroy();
+                cropper = null;
+            }
+            showCropToolBtn.textContent = 'Activate Crop Tool';
+            cropActions.style.display = 'none';
         };
         reader.readAsDataURL(file);
     } else {
@@ -46,6 +76,7 @@ removeBgBtn.addEventListener('click', async () => {
 
     removeBgBtn.disabled = true;
     removeBgBtn.textContent = 'Removing Background...';
+    showLoading(true);
 
     try {
         const formData = new FormData();
@@ -68,25 +99,16 @@ removeBgBtn.addEventListener('click', async () => {
         const imageBlob = await response.blob();
         const imageUrl = URL.createObjectURL(imageBlob);
 
-        processedImage.src = imageUrl;
-        processedImage.style.display = 'block';
-        uploadedImage.style.display = 'none'; // Hide original
-        noImageMessage.style.display = 'none';
-
-        currentImageBlob = imageBlob; // Store blob for download
-        downloadBtn.style.display = 'block';
+        displayProcessedImage(imageUrl, imageBlob);
 
     } catch (error) {
         console.error('Error removing background:', error);
         alert('Failed to remove background. Please try again. Error: ' + error.message);
-        // Revert to original image if processing fails
-        uploadedImage.style.display = 'block';
-        processedImage.style.display = 'none';
-        currentImageBlob = null;
-        downloadBtn.style.display = 'none';
+        displayOriginalImage(); // Revert to original if processing fails
     } finally {
         removeBgBtn.disabled = false;
         removeBgBtn.textContent = 'Remove Background';
+        showLoading(false);
     }
 });
 
@@ -128,13 +150,178 @@ downloadBtn.addEventListener('click', () => {
     }
 });
 
+// --- Cropping Tool Events ---
+showCropToolBtn.addEventListener('click', () => {
+    if (!originalFile) {
+        alert('Please upload an image first.');
+        return;
+    }
+
+    if (cropper) {
+        cropper.destroy();
+        cropper = null;
+        showCropToolBtn.textContent = 'Activate Crop Tool';
+        cropActions.style.display = 'none';
+        displayProcessedImage(processedImage.src, currentImageBlob); // Show the current processed image if any
+    } else {
+        uploadedImage.style.display = 'none';
+        processedImage.style.display = 'none';
+        noImageMessage.style.display = 'none';
+        cropTargetImage.style.display = 'block';
+
+        cropper = new Cropper(cropTargetImage, {
+            aspectRatio: 1 / 1, // Default to 1:1, can be changed by radio buttons
+            viewMode: 1, // Restrict the crop box to not exceed the canvas
+            autoCropArea: 0.8, // 80% of the image
+            ready: function () {
+                cropImageBtn.disabled = false;
+                resetCropBtn.disabled = false;
+            },
+            cropend: function() {
+                // You can get crop data here if needed on crop end
+            }
+        });
+        showCropToolBtn.textContent = 'Deactivate Crop Tool';
+        cropActions.style.display = 'flex'; // Make flex to arrange items
+        cropActions.style.flexDirection = 'column'; // Stack vertically
+        cropActions.style.gap = '10px';
+    }
+});
+
+aspectRatioOptions.forEach(radio => {
+    radio.addEventListener('change', (e) => {
+        if (cropper) {
+            const ratio = e.target.value === '0' ? 0 : eval(e.target.value); // Use eval carefully if values are not controlled
+            cropper.setAspectRatio(ratio);
+        }
+    });
+});
+
+cropImageBtn.addEventListener('click', () => {
+    if (cropper && originalFile) {
+        showLoading(true);
+        cropImageBtn.disabled = true;
+        resetCropBtn.disabled = true;
+
+        const croppedCanvas = cropper.getCroppedCanvas();
+        croppedCanvas.toBlob((blob) => {
+            const croppedImageUrl = URL.createObjectURL(blob);
+            displayProcessedImage(croppedImageUrl, blob);
+            cropper.destroy(); // Destroy cropper after cropping
+            cropper = null;
+            cropTargetImage.style.display = 'none';
+            showCropToolBtn.textContent = 'Activate Crop Tool';
+            cropActions.style.display = 'none';
+            showLoading(false);
+            cropImageBtn.disabled = false;
+            resetCropBtn.disabled = false;
+        }, 'image/png'); // Using PNG for quality, can be 'image/jpeg' with quality
+    }
+});
+
+resetCropBtn.addEventListener('click', () => {
+    if (cropper) {
+        cropper.reset();
+    }
+});
+
+// --- Resizing Tool Events ---
+resizeWidthInput.addEventListener('input', () => {
+    if (maintainAspectCheckbox.checked && originalFile) {
+        // Calculate height based on aspect ratio
+        const img = new Image();
+        img.onload = () => {
+            const aspectRatio = img.width / img.height;
+            const newWidth = parseInt(resizeWidthInput.value);
+            if (!isNaN(newWidth) && newWidth > 0) {
+                resizeHeightInput.value = Math.round(newWidth / aspectRatio);
+            }
+        };
+        // Use the current displayed image (processed or original) for aspect ratio calculation
+        img.src = processedImage.style.display === 'block' ? processedImage.src : uploadedImage.src;
+    }
+});
+
+resizeHeightInput.addEventListener('input', () => {
+    if (maintainAspectCheckbox.checked && originalFile) {
+        const img = new Image();
+        img.onload = () => {
+            const aspectRatio = img.width / img.height;
+            const newHeight = parseInt(resizeHeightInput.value);
+            if (!isNaN(newHeight) && newHeight > 0) {
+                resizeWidthInput.value = Math.round(newHeight * aspectRatio);
+            }
+        };
+        img.src = processedImage.style.display === 'block' ? processedImage.src : uploadedImage.src;
+    }
+});
+
+
+resizeImageBtn.addEventListener('click', async () => {
+    if (!originalFile) {
+        alert('Please upload an image first.');
+        return;
+    }
+
+    const width = parseInt(resizeWidthInput.value);
+    const height = parseInt(resizeHeightInput.value);
+
+    if (isNaN(width) || isNaN(height) || width <= 0 || height <= 0) {
+        alert('Please enter valid positive dimensions for resizing.');
+        return;
+    }
+
+    resizeImageBtn.disabled = true;
+    resizeImageBtn.textContent = 'Resizing...';
+    showLoading(true);
+
+    try {
+        const img = new Image();
+        img.src = processedImage.style.display === 'block' ? processedImage.src : uploadedImage.src; // Use current displayed image
+
+        img.onload = () => {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+
+            canvas.width = width;
+            canvas.height = height;
+
+            ctx.drawImage(img, 0, 0, width, height);
+
+            canvas.toBlob((blob) => {
+                const resizedImageUrl = URL.createObjectURL(blob);
+                displayProcessedImage(resizedImageUrl, blob);
+                resizeImageBtn.disabled = false;
+                resizeImageBtn.textContent = 'Resize Image';
+                showLoading(false);
+            }, 'image/png', 0.95); // Output as PNG with good quality
+        };
+        img.onerror = () => {
+            throw new Error('Could not load image for resizing.');
+        };
+
+    } catch (error) {
+        console.error('Error resizing image:', error);
+        alert('Failed to resize image. Error: ' + error.message);
+        resizeImageBtn.disabled = false;
+        resizeImageBtn.textContent = 'Resize Image';
+        showLoading(false);
+    }
+});
+
+
 // --- Helper Functions ---
 
 function enableControls(enable) {
     removeBgBtn.disabled = !enable;
     applyColorBgBtn.disabled = !enable;
     applyCustomBgBtn.disabled = !enable;
-    // downloadBtn.disabled = !enable; // Download enabled only after processing
+    showCropToolBtn.disabled = !enable;
+    resizeWidthInput.disabled = !enable;
+    resizeHeightInput.disabled = !enable;
+    resizeImageBtn.disabled = !enable;
+    maintainAspectCheckbox.disabled = !enable;
+    // downloadBtn is handled separately after a successful process
 }
 
 function resetEditor() {
@@ -144,25 +331,62 @@ function resetEditor() {
     uploadedImage.style.display = 'none';
     processedImage.src = '#';
     processedImage.style.display = 'none';
+    cropTargetImage.src = '#';
+    cropTargetImage.style.display = 'none';
     noImageMessage.style.display = 'block';
     enableControls(false);
     downloadBtn.style.display = 'none';
     removeBgBtn.textContent = 'Remove Background';
+    resizeWidthInput.value = '';
+    resizeHeightInput.value = '';
+    if (cropper) {
+        cropper.destroy();
+        cropper = null;
+    }
+    showCropToolBtn.textContent = 'Activate Crop Tool';
+    cropActions.style.display = 'none';
+    cropImageBtn.disabled = true;
+    resetCropBtn.disabled = true;
+    showLoading(false);
 }
+
+function displayProcessedImage(url, blob) {
+    processedImage.src = url;
+    processedImage.style.display = 'block';
+    uploadedImage.style.display = 'none';
+    noImageMessage.style.display = 'none';
+    currentImageBlob = blob;
+    downloadBtn.style.display = 'block';
+    // If cropper was active, hide its image
+    if (cropper) {
+        cropTargetImage.style.display = 'none';
+    }
+}
+
+function displayOriginalImage() {
+    if (originalFile) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            uploadedImage.src = e.target.result;
+            uploadedImage.style.display = 'block';
+            processedImage.style.display = 'none';
+            noImageMessage.style.display = 'none';
+            currentImageBlob = null; // No processed image yet
+            downloadBtn.style.display = 'none';
+        };
+        reader.readAsDataURL(originalFile);
+    } else {
+        resetEditor();
+    }
+}
+
 
 async function applySolidBackground(mainImageFile, color) {
     if (!mainImageFile) return;
 
-    // This is a simplified approach. For true merging, you'd use Canvas API.
-    // For now, let's assume the user first removes the background, then applies color.
-
-    // If a processed image (without background) exists, use that.
-    // Otherwise, you'd need to re-process the original with the background.
-    // The remove.bg API allows specifying a background color directly.
-    // Let's modify the remove.bg call to include the background color.
-
     applyColorBgBtn.disabled = true;
     applyColorBgBtn.textContent = 'Applying Color...';
+    showLoading(true);
 
     try {
         const formData = new FormData();
@@ -186,27 +410,16 @@ async function applySolidBackground(mainImageFile, color) {
         const imageBlob = await response.blob();
         const imageUrl = URL.createObjectURL(imageBlob);
 
-        processedImage.src = imageUrl;
-        processedImage.style.display = 'block';
-        uploadedImage.style.display = 'none';
-        noImageMessage.style.display = 'none';
-
-        currentImageBlob = imageBlob;
-        downloadBtn.style.display = 'block';
+        displayProcessedImage(imageUrl, imageBlob);
 
     } catch (error) {
         console.error('Error applying solid background:', error);
         alert('Failed to apply solid background. Error: ' + error.message);
-        // Revert to previous state if fails
-        if (originalFile) {
-            uploadedImage.style.display = 'block';
-            processedImage.style.display = 'none';
-        } else {
-            resetEditor();
-        }
+        displayOriginalImage(); // Revert if fails
     } finally {
         applyColorBgBtn.disabled = false;
         applyColorBgBtn.textContent = 'Apply Color';
+        showLoading(false);
     }
 }
 
@@ -215,6 +428,7 @@ async function applyCustomBackground(mainImageFile, customBgDataURL) {
 
     applyCustomBgBtn.disabled = true;
     applyCustomBgBtn.textContent = 'Applying Custom BG...';
+    showLoading(true);
 
     try {
         // First, remove the background of the main image
@@ -269,16 +483,10 @@ async function applyCustomBackground(mainImageFile, customBgDataURL) {
         ctx.drawImage(foregroundImg, 0, 0, canvas.width, canvas.height);
 
         // Get the result as a Blob
-        const resultBlob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png')); // Output as PNG to preserve transparency if any
+        const resultBlob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
 
         const resultUrl = URL.createObjectURL(resultBlob);
-        processedImage.src = resultUrl;
-        processedImage.style.display = 'block';
-        uploadedImage.style.display = 'none';
-        noImageMessage.style.display = 'none';
-
-        currentImageBlob = resultBlob;
-        downloadBtn.style.display = 'block';
+        displayProcessedImage(resultUrl, resultBlob);
 
         URL.revokeObjectURL(foregroundUrl); // Clean up
         URL.revokeObjectURL(resultUrl); // Clean up
@@ -286,18 +494,25 @@ async function applyCustomBackground(mainImageFile, customBgDataURL) {
     } catch (error) {
         console.error('Error applying custom background:', error);
         alert('Failed to apply custom background. Error: ' + error.message);
-        // Revert to previous state if fails
-        if (originalFile) {
-            uploadedImage.style.display = 'block';
-            processedImage.style.display = 'none';
-        } else {
-            resetEditor();
-        }
+        displayOriginalImage(); // Revert if fails
     } finally {
         applyCustomBgBtn.disabled = false;
         applyCustomBgBtn.textContent = 'Apply Custom BG';
+        showLoading(false);
     }
 }
+
+function showLoading(isLoading) {
+    const body = document.querySelector('body');
+    if (isLoading) {
+        body.style.cursor = 'wait';
+        // You might want to add a visible spinner/overlay here
+    } else {
+        body.style.cursor = 'default';
+        // Remove spinner/overlay
+    }
+}
+
 
 // Initial state
 resetEditor();
