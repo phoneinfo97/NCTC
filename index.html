@@ -3,50 +3,79 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Passport Photo Editor & BG Remover</title>
+    <title>Passport Photo Studio - Editor & BG Remover</title>
     <link rel="stylesheet" href="style.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.css" rel="stylesheet">
 </head>
 <body>
     <div class="container">
-        <h1>Photo Editor</h1>
+        <h1 class="fade-in">Passport Photo Studio</h1>
 
-        <div class="upload-section">
+        <div class="upload-section card-effect">
             <input type="file" id="imageUpload" accept="image/*">
-            <label for="imageUpload" class="upload-button">Upload Photo</label>
-            <p>Upload an image to start editing.</p>
+            <label for="imageUpload" class="upload-button glow-on-hover">Upload Photo</label>
+            <p class="fade-in">Upload an image to start editing.</p>
         </div>
 
         <div class="editor-area">
-            <div class="image-preview-container">
+            <div class="image-preview-container card-effect">
                 <img id="uploadedImage" src="#" alt="Uploaded Image" style="display: none;">
                 <img id="processedImage" src="#" alt="Processed Image" style="display: none;">
-                <p id="noImageMessage">No image uploaded yet.</p>
+                <p id="noImageMessage" class="pulse">No image uploaded yet.</p>
+                <img id="cropTargetImage" src="#" alt="Image for Cropping" style="display: none;">
             </div>
 
-            <div class="controls-section">
+            <div class="controls-section card-effect">
                 <h2>Background Tools</h2>
-                <button id="removeBgBtn" disabled>Remove Background</button>
+                <button id="removeBgBtn" class="btn-primary" disabled>Remove Background</button>
 
                 <h3>Custom Background</h3>
                 <div class="bg-options">
                     <input type="color" id="colorPicker" value="#ffffff">
-                    <label for="colorPicker">Solid Color BG</label>
-                    <button id="applyColorBgBtn" disabled>Apply Color</button>
+                    <label for="colorPicker" class="label-inline">Solid Color BG</label>
+                    <button id="applyColorBgBtn" class="btn-secondary" disabled>Apply Color</button>
                 </div>
                 <div class="bg-options">
                     <input type="file" id="customBgUpload" accept="image/*">
-                    <label for="customBgUpload" class="upload-button">Upload Custom BG</label>
-                    <button id="applyCustomBgBtn" disabled>Apply Custom BG</button>
+                    <label for="customBgUpload" class="upload-button-small glow-on-hover">Upload Custom BG</label>
+                    <button id="applyCustomBgBtn" class="btn-secondary" disabled>Apply Custom BG</button>
                 </div>
 
-                <h2>Other Tools (Coming Soon)</h2>
-                <p>Passport Photo Cropping, Resizing, etc.</p>
+                <hr class="divider">
 
-                <button id="downloadBtn" style="display: none;">Download High Quality</button>
+                <h2>Passport Photo Cropping</h2>
+                <div class="crop-controls">
+                    <button id="showCropToolBtn" class="btn-info" disabled>Activate Crop Tool</button>
+                    <div id="cropActions" style="display: none;">
+                        <div class="aspect-ratio-options">
+                            <label><input type="radio" name="aspectRatio" value="1/1" checked> 1:1</label>
+                            <label><input type="radio" name="aspectRatio" value="3/4"> 3:4</label>
+                            <label><input type="radio" name="aspectRatio" value="2/3"> 2:3</label>
+                            <label><input type="radio" name="aspectRatio" value="0"> Free</label>
+                            </div>
+                        <button id="cropImageBtn" class="btn-success" disabled>Crop Image</button>
+                        <button id="resetCropBtn" class="btn-danger" disabled>Reset Crop</button>
+                    </div>
+                </div>
+
+                <hr class="divider">
+
+                <h2>Image Resizer</h2>
+                <div class="resize-controls">
+                    <input type="number" id="resizeWidth" placeholder="Width" disabled>
+                    <input type="number" id="resizeHeight" placeholder="Height" disabled>
+                    <button id="resizeImageBtn" class="btn-warning" disabled>Resize Image</button>
+                    <label class="label-inline"><input type="checkbox" id="maintainAspect" checked> Maintain Aspect Ratio</label>
+                </div>
+
+                <hr class="divider">
+
+                <button id="downloadBtn" class="btn-download" style="display: none;">Download High Quality</button>
             </div>
         </div>
     </div>
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.js"></script>
     <script src="script.js"></script>
 </body>
 </html>
