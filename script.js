@@ -1,6 +1,6 @@
 // **IMPORTANT: For a production application, NEVER expose your API key client-side.**
 // You would need a backend server to proxy requests to remove.bg.
-const REMOVE_BG_API_KEY = 'YOUR_REMOVE_BG_API_KEY'; // Replace with your actual API key
+const REMOVE_BG_API_KEY = 'NsqYTFfs62ok544xzwZ8MGAa'; // Replace with your actual API key
 
 const imageUpload = document.getElementById('imageUpload');
 const uploadedImage = document.getElementById('uploadedImage');
