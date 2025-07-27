@@ -1,31 +1,52 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Passport Photo Editor</title>
-  <link rel="stylesheet" href="style.css">
-  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Passport Photo Editor & BG Remover</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div class="container">
-    <div class="header">
-      <img src="logo.png" alt="Logo" class="logo">
-      <h1>Passport Size Photo Editor</h1>
+    <div class="container">
+        <h1>Photo Editor</h1>
+
+        <div class="upload-section">
+            <input type="file" id="imageUpload" accept="image/*">
+            <label for="imageUpload" class="upload-button">Upload Photo</label>
+            <p>Upload an image to start editing.</p>
+        </div>
+
+        <div class="editor-area">
+            <div class="image-preview-container">
+                <img id="uploadedImage" src="#" alt="Uploaded Image" style="display: none;">
+                <img id="processedImage" src="#" alt="Processed Image" style="display: none;">
+                <p id="noImageMessage">No image uploaded yet.</p>
+            </div>
+
+            <div class="controls-section">
+                <h2>Background Tools</h2>
+                <button id="removeBgBtn" disabled>Remove Background</button>
+
+                <h3>Custom Background</h3>
+                <div class="bg-options">
+                    <input type="color" id="colorPicker" value="#ffffff">
+                    <label for="colorPicker">Solid Color BG</label>
+                    <button id="applyColorBgBtn" disabled>Apply Color</button>
+                </div>
+                <div class="bg-options">
+                    <input type="file" id="customBgUpload" accept="image/*">
+                    <label for="customBgUpload" class="upload-button">Upload Custom BG</label>
+                    <button id="applyCustomBgBtn" disabled>Apply Custom BG</button>
+                </div>
+
+                <h2>Other Tools (Coming Soon)</h2>
+                <p>Passport Photo Cropping, Resizing, etc.</p>
+
+                <button id="downloadBtn" style="display: none;">Download High Quality</button>
+            </div>
+        </div>
     </div>
 
-    <input id="upload" type="file" accept="image/*">
-    <div class="controls">
-      <input type="color" id="colorPicker">
-      <input type="file" id="bgUpload" accept="image/*">
-      <button id="removeBg">Remove Background</button>
-      <button id="applyBg">Apply Background</button>
-      <button id="downloadBtn">Download</button>
-    </div>
-
-    <div id="preview" class="preview">No image selected</div>
-  </div>
-
-  <script src="script.js"></script>
+    <script src="script.js"></script>
 </body>
 </html>
