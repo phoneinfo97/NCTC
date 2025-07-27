@@ -48,11 +48,100 @@ h1, h2, h3 {
 }
 
 .upload-button:hover {
-    background-color: #0056b3;
+:root {
+    --primary-color: #4CAF50; /* Green */
+    --secondary-color: #2196F3; /* Blue */
+    --accent-color: #FFC107; /* Amber */
+    --danger-color: #F44336; /* Red */
+    --info-color: #00BCD4; /* Cyan */
+    --text-color: #333;
+    --light-bg: #f0f2f5;
+    --card-bg: #fff;
+    --border-color: #ddd;
+    --shadow-light: 0 4px 15px rgba(0, 0, 0, 0.1);
+    --shadow-hover: 0 8px 25px rgba(0, 0, 0, 0.2);
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    min-height: 100vh;
+    background: linear-gradient(135deg, var(--light-bg), #e0e6ec);
+    margin: 0;
+    padding: 20px;
+    box-sizing: border-box;
+    color: var(--text-color);
+}
+
+.container {
+    background-color: var(--card-bg);
+    padding: 30px;
+    border-radius: 15px;
+    box-shadow: var(--shadow-light);
+    text-align: center;
+    width: 100%;
+    max-width: 1400px;
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+    animation: slideIn 0.8s ease-out forwards;
+}
+
+h1, h2, h3 {
+    color: var(--primary-color);
+    margin-bottom: 15px;
+    font-weight: 600;
+}
+
+h1 {
+    font-size: 2.8em;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.05);
+}
+
+.upload-section {
+    margin-bottom: 25px;
+    padding: 25px;
+    border: 3px dashed var(--secondary-color);
+    border-radius: 12px;
+    background-color: #e3f2fd; /* Lighter blue */
+    transition: all 0.3s ease;
+}
+
+.upload-section:hover {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 15px rgba(0, 123, 255, 0.2);
+}
+
+.upload-button, .upload-button-small {
+    display: inline-block;
+    padding: 12px 28px;
+    background-color: var(--secondary-color);
+    color: white;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 1.1em;
+    font-weight: 500;
+    border: none;
+    outline: none;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+}
+
+.upload-button:hover, .upload-button-small:hover {
+    background-color: #1976D2; /* Darker blue */
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
+}
+
+.upload-button-small {
+    padding: 8px 15px;
+    font-size: 0.9em;
 }
 
 input[type="file"] {
-    display: none; /* Hide default file input */
+    display: none;
 }
 
 .editor-area {
@@ -64,18 +153,19 @@ input[type="file"] {
 }
 
 .image-preview-container {
-    flex: 1;
-    min-width: 300px;
-    max-width: 500px;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    background-color: #eee;
+    flex: 2; /* Takes more space */
+    min-width: 350px;
+    max-width: 650px;
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    background-color: #fcfcfc;
     display: flex;
     justify-content: center;
     align-items: center;
-    min-height: 350px;
+    min-height: 450px;
     overflow: hidden;
     position: relative;
+    box-shadow: inset 0 0 10px rgba(0,0,0,0.05);
 }
 
 .image-preview-container img {
@@ -83,77 +173,280 @@ input[type="file"] {
     max-height: 100%;
     height: auto;
     object-fit: contain;
+    transition: transform 0.3s ease-out; /* For potential image transforms */
 }
 
 .image-preview-container #noImageMessage {
-    color: #666;
+    color: #999;
     font-style: italic;
+    font-size: 1.1em;
 }
 
 .controls-section {
     flex: 1;
-    min-width: 300px;
-    padding: 20px;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    background-color: #f9f9f9;
+    min-width: 350px;
+    padding: 25px;
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    background-color: var(--card-bg);
     text-align: left;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
 }
 
 .controls-section button {
     display: block;
     width: 100%;
-    padding: 10px 15px;
-    margin-bottom: 10px;
-    background-color: #28a745;
-    color: white;
+    padding: 12px 15px;
+    margin-bottom: 5px;
     border: none;
-    border-radius: 5px;
+    border-radius: 6px;
     cursor: pointer;
-    font-size: 16px;
-    transition: background-color 0.3s ease;
+    font-size: 1.05em;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
-.controls-section button:hover:not(:disabled) {
-    background-color: #218838;
+.btn-primary { background-color: var(--primary-color); color: white; }
+.btn-primary:hover:not(:disabled) { background-color: #388E3C; transform: translateY(-1px); box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15); }
+
+.btn-secondary { background-color: var(--secondary-color); color: white; }
+.btn-secondary:hover:not(:disabled) { background-color: #1976D2; transform: translateY(-1px); box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15); }
+
+.btn-info { background-color: var(--info-color); color: white; }
+.btn-info:hover:not(:disabled) { background-color: #00838F; transform: translateY(-1px); box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15); }
+
+.btn-success { background-color: var(--primary-color); color: white; }
+.btn-success:hover:not(:disabled) { background-color: #388E3C; transform: translateY(-1px); box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15); }
+
+.btn-danger { background-color: var(--danger-color); color: white; }
+.btn-danger:hover:not(:disabled) { background-color: #D32F2F; transform: translateY(-1px); box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15); }
+
+.btn-warning { background-color: var(--accent-color); color: #333; }
+.btn-warning:hover:not(:disabled) { background-color: #FFA000; transform: translateY(-1px); box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15); }
+
+.btn-download {
+    background-color: var(--secondary-color);
+    margin-top: 20px;
+    box-shadow: 0 5px 15px rgba(0, 123, 255, 0.3);
+}
+.btn-download:hover:not(:disabled) {
+    background-color: #0056b3;
+    transform: translateY(-3px) scale(1.02);
+    box-shadow: 0 8px 20px rgba(0, 123, 255, 0.4);
 }
 
 .controls-section button:disabled {
     background-color: #cccccc;
     cursor: not-allowed;
+    box-shadow: none;
+    transform: none;
 }
 
-#downloadBtn {
-    background-color: #007bff;
-    margin-top: 20px;
-}
-
-#downloadBtn:hover:not(:disabled) {
-    background-color: #0056b3;
-}
-
-.bg-options {
+.bg-options, .resize-controls, .aspect-ratio-options {
     display: flex;
     align-items: center;
     gap: 10px;
-    margin-bottom: 15px;
+    flex-wrap: wrap;
+    margin-bottom: 10px;
 }
 
 .bg-options input[type="color"] {
-    width: 50px;
-    height: 30px;
-    border: none;
+    width: 60px;
+    height: 35px;
+    border: 1px solid var(--border-color);
+    border-radius: 5px;
     padding: 0;
     cursor: pointer;
+    background: transparent;
 }
 
+.label-inline {
+    margin-right: auto; /* Pushes button/input to the right */
+    color: var(--text-color);
+}
+
+.resize-controls input[type="number"] {
+    width: 80px;
+    padding: 8px;
+    border: 1px solid var(--border-color);
+    border-radius: 5px;
+    font-size: 0.9em;
+}
+
+.resize-controls input[type="checkbox"] {
+    margin-left: 10px;
+}
+
+.crop-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.aspect-ratio-options label {
+    font-size: 0.9em;
+    cursor: pointer;
+    padding: 5px 8px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    transition: all 0.2s ease;
+}
+
+.aspect-ratio-options label:hover {
+    background-color: #f0f0f0;
+}
+
+.aspect-ratio-options input[type="radio"]:checked + span {
+    background-color: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
+}
+
+.aspect-ratio-options input[type="radio"] {
+    display: none;
+}
+
+.aspect-ratio-options label span {
+    padding: 5px 8px;
+    display: inline-block;
+    border-radius: 4px;
+}
+
+.divider {
+    border: none;
+    border-top: 1px solid #eee;
+    margin: 20px 0;
+}
+
+/* Cropper.js specific styles adjustment */
+.cropper-view-box, .cropper-face {
+    border-radius: 5px; /* So it matches your rounded corners */
+}
+
+/* Animations and Effects */
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes slideIn {
+    from { transform: translateY(20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.02); opacity: 0.8; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+.fade-in {
+    animation: fadeIn 1s ease-out forwards;
+}
+
+.pulse {
+    animation: pulse 2s infinite ease-in-out;
+}
+
+.card-effect {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card-effect:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-hover);
+}
+
+.glow-on-hover {
+    position: relative;
+    z-index: 0;
+    overflow: hidden;
+}
+
+.glow-on-hover:before {
+    content: '';
+    background: linear-gradient(45deg, #ff00de, #007bff, #ff00de, #007bff);
+    position: absolute;
+    top: -200%;
+    left: -200%;
+    width: 400%;
+    height: 400%;
+    animation: glowing 8s linear infinite;
+    z-index: -1;
+    opacity: 0;
+    transition: opacity .3s ease-in-out;
+    border-radius: 8px;
+}
+
+.glow-on-hover:active {
+    color: #000
+}
+
+.glow-on-hover:active:after {
+    background: transparent;
+}
+
+.glow-on-hover:hover:before {
+    opacity: 1;
+}
+
+.glow-on-hover:after {
+    z-index: -1;
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background: var(--secondary-color); /* Original button background */
+    left: 0;
+    top: 0;
+    border-radius: 8px;
+}
+
+@keyframes glowing {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+
 /* Basic responsiveness */
-@media (max-width: 768px) {
+@media (max-width: 992px) {
     .editor-area {
         flex-direction: column;
+        align-items: center;
     }
     .image-preview-container, .controls-section {
-        width: 100%;
+        width: 95%;
         max-width: unset;
+        min-width: unset;
+    }
+}
+
+@media (max-width: 576px) {
+    .container {
+        padding: 20px;
+    }
+    h1 {
+        font-size: 2em;
+    }
+    .upload-button {
+        padding: 10px 20px;
+        font-size: 1em;
+    }
+    .controls-section button {
+        font-size: 0.95em;
+        padding: 10px;
+    }
+    .bg-options, .resize-controls, .aspect-ratio-options {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+    .resize-controls input {
+        width: 100%;
+        box-sizing: border-box;
     }
 }
